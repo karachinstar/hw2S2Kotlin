@@ -43,15 +43,122 @@ lateinit var n: String
 var phoneContact: Map<String, String> = mapOf()
 var mailContact: Map<String, String> = mapOf()
 var flag: Boolean = true
-fun main() {
-    println("""Добро пожаловать в записную книжку 
-    |Список команд: 
-    |exit - выход
-    |help - справка
-    |add - добавить контакт
-    |showPhone - список телефонов
-    |showEmail - список почтовы адресов)""")
-    while(flag){
+sealed interface Command {
+    fun isValid(): Boolean
+}
+
+data class AddPhoneCommand(val name: String, val phone: String) : Command {
+    override fun isValid() = phone.matches(Regex("\\+?\\d+"))
+    override fun toString(): String {
+        return "Вызвана команда добавления с указанием телефона"
+    }
+}
+
+data class AddEmailCommand(val name: String, val email: String) : Command {
+    override fun isValid() = email.matches(Regex("\\w+@\\w+\\.\\w+"))
+    override fun toString(): String {
+        return "Вызвана команда добавления с указанием почты"
+    }
+}
+
+object ExitCommand : Command {
+    override fun isValid() = true
+}
+
+object HelpCommand : Command {
+    override fun isValid() = true
+}
+
+object ShowCommand : Command {
+    override fun isValid() = true
+}
+
+// Класс Person
+data class Person(var name: String, var phone: String? = null, var email: String? = null){
+    override fun toString(): String {
+        return "Name: ${name}, Phone: ${phone}, Email: ${email}"
+    }
+}
+
+fun readCommand(input: String): Command {
+    val parts = input.split(" ")
+    // Распознавание команды
+    return when (parts[0]) {
+        "add" -> {
+            if (parts.size == 4) {
+                when (parts[2]) {
+                    "phone" -> AddPhoneCommand(parts[1], parts[3])
+                    "email" -> AddEmailCommand(parts[1], parts[3])
+                    else -> HelpCommand
+                }
+            } else {
+                return HelpCommand
+            }
+        }
+
+        "exit" -> ExitCommand
+        "help" -> HelpCommand
+        "show" -> ShowCommand
+        else -> {
+            println("Неизвестная команда")
+            HelpCommand
+        }
+    }
+}
+
+fun main(){
+    println("""Добро пожаловать в записную книжку
+    Список команд:
+    exit - выход
+    help - справка
+    add <Имя> phone <Номер телефона> - Добавить имя человека и номер телефона(только цифры(может начинаться с +)
+    add <Имя> email <Адрес электронной почты> - Добавить имя человека и mail(обязательно в адресе содержит @ и .)
+    show - показать последнюю добавленную запись""")
+    var person: Person? = null
+    while (true) {
+        val command = readCommand(readLine()!!)
+        if (command.isValid()) {
+            when (command) {
+                is AddPhoneCommand -> {
+                    person = Person(command.name, phone = command.phone)
+                    println("Добавлено: Name: ${person!!.name}, телефон: ${person!!.phone}")
+                }
+
+                is AddEmailCommand -> {
+                    person = Person(command.name, email = command.email)
+                    println("Добавлено: Name: ${person!!.name}, email: ${person!!.email}")
+                }
+
+                is ShowCommand -> {
+                    if (person == null) {
+                        println("Not initialized")
+                    } else {
+                        println("Последняя запись: $person")
+                    }
+                }
+
+                is HelpCommand -> {
+                    println("""Список команд:
+    exit - выход
+    help - справка
+    add <Имя> phone <Номер телефона> - Добавить имя человека и номер телефона(только цифры(может начинаться с +)
+    add <Имя> email <Адрес электронной почты> - Добавить имя человека и mail(обязательно в адресе содержит @ и .)
+    show - показать последнюю добавленную запись""")
+                }
+                is ExitCommand -> return
+            }
+        }
+    }
+}
+/*
+fun main1() { //старый код
+    println("""Добро пожаловать в записную книжку
+    Список команд:
+    exit - выход
+    help - справка
+    add - добавить контакт
+    show - показать последнюю добавленную запись""")
+    while(true){
         println("Введите команду")
         n = readlnOrNull().toString()
         when (n) {
@@ -59,7 +166,7 @@ fun main() {
                 flag = false
             }
             "help" -> {
-                println("""Список команд: 
+                println("""Список команд:
     |exit - выход
     |help - справка
     |add - добавить контакт
@@ -114,3 +221,5 @@ fun addContactPhoneOrMail(n: String) {
         println("Данные введены некорректно. Введите help -> add для уточнения параметров")
     }
 }
+
+ */

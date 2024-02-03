@@ -48,17 +48,12 @@ sealed interface Command {
 }
 
 data class AddPhoneCommand(val name: String, val phone: String) : Command {
-    override fun isValid() = phone.matches(Regex("\\+?\\d+"))
-    override fun toString(): String {
-        return "Вызвана команда добавления с указанием телефона"
-    }
+    override fun isValid() = phone.matches(Regex("""^\+?\d+${'$'}"""))
 }
 
+
 data class AddEmailCommand(val name: String, val email: String) : Command {
-    override fun isValid() = email.matches(Regex("\\w+@\\w+\\.\\w+"))
-    override fun toString(): String {
-        return "Вызвана команда добавления с указанием почты"
-    }
+    override fun isValid() = email.matches(Regex("""^[A-Za-z\d](.*)(@)(.+)(\.)([A-Za-z]{2,})"""))
 }
 
 object ExitCommand : Command {
@@ -116,6 +111,7 @@ fun main(){
     show - показать последнюю добавленную запись""")
     var person: Person? = null
     while (true) {
+        print("Введите команду: ")
         val command = readCommand(readLine()!!)
         if (command.isValid()) {
             when (command) {
